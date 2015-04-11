@@ -182,6 +182,7 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
             
             dl.add(site+images[i], folder:"artwork")
             dl.add(urlu, folder: "thumbs")
+            dl.add(site+urls[i], folder:"mp3")
 
         }
 //        println(json["Playlists"])

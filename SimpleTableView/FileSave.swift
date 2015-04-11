@@ -33,6 +33,7 @@
         if let path = finalFile.path {
             if fileManager.fileExistsAtPath(path) {
                 println("file exists")
+                dl.next()
                 return
 //                fileManager.removeItemAtURL(finalFile, error: nil);
             }
