@@ -1,12 +1,8 @@
 //
-//  AppDelegate.swift
-//  SimpleTableView
-//
-//  Created by Andrei Puni on 25/12/14.
-//  Copyright (c) 2014 Andrei Puni. All rights reserved.
 //
 
 import UIKit
+import AVFoundation
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -15,8 +11,71 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
 
     func application(application: UIApplication, didFinishLaunchingWithOptions launchOptions: [NSObject: AnyObject]?) -> Bool {
-        // Override point for customization after application launch.
+        AVAudioSession.sharedInstance().setCategory(AVAudioSessionCategoryAmbient, withOptions: nil, error: nil)
+        
+        // deliberate leak here
+        
+        NSNotificationCenter.defaultCenter().addObserverForName(
+            AVAudioSessionRouteChangeNotification, object: nil, queue: NSOperationQueue.mainQueue(), usingBlock: {
+                (note:NSNotification!) in
+                println("change route \(note.userInfo)")
+                println("current route \(AVAudioSession.sharedInstance().currentRoute)")
+        })
+        // properly, if the route changes from some kind of Headphones to Built-In Speaker,
+        // we should pause our sound (doesn't happen automatically)
+        
+        NSNotificationCenter.defaultCenter().addObserverForName(
+            AVAudioSessionInterruptionNotification, object: nil, queue: NSOperationQueue.mainQueue(), usingBlock: {
+                (note:NSNotification!) in
+                let why : AnyObject? = note.userInfo?[AVAudioSessionInterruptionTypeKey]
+                if let why = why as? UInt {
+                    if let why = AVAudioSessionInterruptionType(rawValue: why) {
+                        if why == .Began {
+                            println("interruption began:\n\(note.userInfo!)")
+                        } else {
+                            println("interruption ended:\n\(note.userInfo!)")
+                            let opt : AnyObject? = note.userInfo![AVAudioSessionInterruptionOptionKey]
+                            if let opt = opt as? UInt {
+                                let opts = AVAudioSessionInterruptionOptions(opt)
+                                if opts == .OptionShouldResume {
+                                    println("should resume")
+                                } else {
+                                    println("not should resume")
+                                }
+                            }
+                        }
+                    }
+                }
+        })
+        
+        // use control center to test, e.g. start and stop a Music song
+        
+        NSNotificationCenter.defaultCenter().addObserverForName(
+            AVAudioSessionSilenceSecondaryAudioHintNotification, object: nil, queue: NSOperationQueue.mainQueue(), usingBlock: {
+                (note:NSNotification!) in
+                let why : AnyObject? = note.userInfo?[AVAudioSessionSilenceSecondaryAudioHintTypeKey]
+                if let why = why as? UInt {
+                    if let why = AVAudioSessionSilenceSecondaryAudioHintType(rawValue:why) {
+                        if why == .Begin {
+                            println("silence hint begin:\n\(note.userInfo!)")
+                        } else {
+                            println("silence hint end:\n\(note.userInfo!)")
+                        }
+                    }
+                }
+        })
+        
+         NSNotificationCenter.defaultCenter().addObserverForName(
+            AVPlayerItemDidPlayToEndTimeNotification, object:nil,queue: NSOperationQueue.mainQueue(), usingBlock: {
+                (note:NSNotification!) in
+                println(note)
+         })
         return true
+    }
+    
+    func applicationDidBecomeActive(application: UIApplication) {
+        println("app became active")
+        AVAudioSession.sharedInstance().setActive(true, withOptions: nil, error: nil)
     }
 
     func applicationWillResignActive(application: UIApplication) {
@@ -33,14 +92,70 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // Called as part of the transition from the background to the inactive state; here you can undo many of the changes made on entering the background.
     }
 
-    func applicationDidBecomeActive(application: UIApplication) {
-        // Restart any tasks that were paused (or not yet started) while the application was inactive. If the application was previously in the background, optionally refresh the user interface.
-    }
 
     func applicationWillTerminate(application: UIApplication) {
         // Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
     }
 
+    func application(application: UIApplication, openURL url: NSURL, sourceApplication: String?, annotation: AnyObject?) -> Bool {
+        let action = url.lastPathComponent
+        
+        if action == "connect" {
+            // Account linked to Dropbox -- db-gmd9bz0ihf8t30o://1/connect
+            let account = DBAccountManager.sharedManager().handleOpenURL(url)
+            
+            if let account = account {
+                // App linked successfully!
+                
+                // Migrate any local datastores to Dropbox
+                let localDatastoreManager = DBDatastoreManager.localManagerForAccountManager(DBAccountManager.sharedManager())
+                localDatastoreManager.migrateToAccount(account, error: nil)
+                
+                // Use Dropbox datastores
+                DBDatastoreManager.setSharedManager(DBDatastoreManager(forAccount:account))
+                
+                return true
+            }
+        } else if action == "cancel" {
+            // Do nothing if user cancels login
+        } else {
+            // Shared datastore -- Lists://
+            let datastoreId = url.host
+            
+            println("Opening datastore ID: " + datastoreId!)
+            
+            // Return to root view controller
+            let navigationController = self.window?.rootViewController as! UINavigationController;
+            navigationController.popToRootViewControllerAnimated(false)
+            
+            let account = DBAccountManager.sharedManager().linkedAccount
+            
+            if let account = account {
+                // Go to the shared list (will open the list)
+                if DBDatastore.isValidShareableId(datastoreId) {
+                    
+//                    let viewController = storyboard?.instantiateViewControllerWithIdentifier("ListViewController") as ListViewController
+//                    viewController.datastoreId = datastoreId!
+//                    
+//                    navigationController.pushViewController(viewController, animated: false)
+                } else {
+                    // Notify user that this isn't a valid link
+                    let alertController = UIAlertController(title: "Uh oh!", message: "Invalid List link.", preferredStyle: .Alert)
+                    alertController.addAction(UIAlertAction(title: "Okay", style: .Default, handler: nil))
+                    window?.rootViewController!.presentViewController(alertController, animated: true, completion: nil)
+                }
+            } else {
+                // Notify user to link with Dropbox
+                let alertController = UIAlertController(title: "Link to Dropbox", message: "To accept a shared list you'll need to link to Dropbox first.", preferredStyle: .Alert)
+                alertController.addAction(UIAlertAction(title: "Okay", style: .Default, handler: nil))
+                window?.rootViewController!.presentViewController(alertController, animated: true, completion: nil)
+            }
+            
+            return true
+        }
+        
+        return  false
+    }
 
 }
 
