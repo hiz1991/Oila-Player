@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDESourceControlProjectFavoriteDictionaryKey</key>
+	<false/>
+	<key>IDESourceControlProjectIdentifier</key>
+	<string>38B01F31-63C7-42A5-A36D-B9772D739EF0</string>
+	<key>IDESourceControlProjectName</key>
+	<string>Oila Player</string>
+	<key>IDESourceControlProjectOriginsDictionary</key>
+	<dict>
+		<key>7E51539163D11A6EECD0B7319452F4A094A15A46</key>
+		<string>https://github.com/hiz1991/Oila-Player.git</string>
+	</dict>
+	<key>IDESourceControlProjectPath</key>
+	<string>Oila Player.xcodeproj</string>
+	<key>IDESourceControlProjectRelativeInstallPathDictionary</key>
+	<dict>
+		<key>7E51539163D11A6EECD0B7319452F4A094A15A46</key>
+		<string>../..</string>
+	</dict>
+	<key>IDESourceControlProjectURL</key>
+	<string>https://github.com/hiz1991/Oila-Player.git</string>
+	<key>IDESourceControlProjectVersion</key>
+	<integer>111</integer>
+	<key>IDESourceControlProjectWCCIdentifier</key>
+	<string>7E51539163D11A6EECD0B7319452F4A094A15A46</string>
+	<key>IDESourceControlProjectWCConfigurations</key>
+	<array>
+		<dict>
+			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
+			<string>public.vcs.git</string>
+			<key>IDESourceControlWCCIdentifierKey</key>
+			<string>7E51539163D11A6EECD0B7319452F4A094A15A46</string>
+			<key>IDESourceControlWCCName</key>
+			<string>SimpleTableView</string>
+		</dict>
+	</array>
+</dict>
+</plist>

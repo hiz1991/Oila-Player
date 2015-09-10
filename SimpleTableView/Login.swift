@@ -8,6 +8,10 @@
 import UIKit
 import Foundation
 let dl:Downloader = Downloader()
+var paths = NSFileManager.defaultManager().URLsForDirectory(.DocumentDirectory, inDomains: .UserDomainMask);
+var documentsURL:NSURL =  paths[0] as! NSURL;
+
+var site: String = "http://musicgo.wc.lt/" //"http://172.20.10.5:8888/"//"http://localhost:8888/" //
 class Login:UIViewController,UITextFieldDelegate,  NSURLSessionDelegate  {
     @IBOutlet weak var loginErrLabel: UILabel!
     
@@ -16,16 +20,15 @@ class Login:UIViewController,UITextFieldDelegate,  NSURLSessionDelegate  {
     @IBOutlet weak var loginPanel: UIView!
 
     @IBOutlet weak var circle: UIActivityIndicatorView!
-    var site: String = "http://musicgo.wc.lt/" //"http://10.118.194.176:8888/"//"//http://localhost:8888/"
     var jsonObject:NSDictionary!
      var session = NSURLSession.sharedSession()
     
     @IBAction func loginButtonClicked(sender: AnyObject) {
         circle.startAnimating()
-        //        request(.POST, site+"login.php", parameters: ["loginUsername":usernameHolder.text ,
-        //            "loginPassword" :passwordHolder.text,
-        //            "json" : "enabled"
-        //            ])
+//                request(.POST, site+"login.php", parameters: ["loginUsername":usernameHolder.text ,
+//                    "loginPassword" :passwordHolder.text,
+//                    "json" : "enabled"
+//                    ])
         request(.POST, site+"login.php", parameters: ["loginUsername":"hiz1991@mail.ru" ,
             "loginPassword" :"1991",
             "json" : "enabled"
@@ -48,7 +51,7 @@ class Login:UIViewController,UITextFieldDelegate,  NSURLSessionDelegate  {
     }
     
     func loadData(){
-        request(.POST, self.site+"getJson.php")
+        request(.POST, site+"getJson.php")
             .responseString( completionHandler : { (request: NSURLRequest, response: NSHTTPURLResponse?, string: String?, error: NSError?) -> Void in
 //                self.json = JSON(string!)
                 let str = string! as NSString
@@ -91,7 +94,7 @@ class Login:UIViewController,UITextFieldDelegate,  NSURLSessionDelegate  {
     
     override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject!) {
         var playerVC = segue.destinationViewController as! ViewController
-        playerVC.site = self.site;
+        playerVC.site = site;
 //        playerVC.json = self.json;
         playerVC.jsonObject = self.jsonObject
     }

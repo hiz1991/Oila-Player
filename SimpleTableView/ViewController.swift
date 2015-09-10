@@ -16,6 +16,10 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
     @IBOutlet weak var remoteBlurredView: UIVisualEffectView!
     @IBOutlet var playerPaneBlurredView: UIView!
     
+    @IBOutlet weak var bgBlurredView: UIVisualEffectView!
+    
+    
+    @IBOutlet weak var playerControlsPanel: UIView!
 
     @IBOutlet weak var nameHolder: UITextField!
     @IBOutlet weak var scrollView: UIScrollView!
@@ -42,6 +46,8 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
     var playlistObject:NSDictionary!
     var seekEnabled = true
     var imgCached:UIImage!
+    
+    @IBOutlet weak var bgBlurredImage: UIImageView!
     var loadObs:Seekable =  Seekable()
 //    var json:JSON!
     var jsonObject:NSDictionary!
@@ -154,9 +160,11 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
             let imgUrl = json["Songs"]![i]!["urlOfArt"] as! String!
 //            println(imgUrl)
             str = json["Songs"]![i]!["title"]! as! String!
+//            str = String(htmlEncodedString: str)
             self.items.append(str)
             self.urls.append(json["Songs"]![i]!["url"]! as! String!)
             self.images.append(imgUrl)
+//            self.artists.append(String(htmlEncodedString: json["Songs"]![i]!["artist"]! as! String!))
             self.artists.append(json["Songs"]![i]!["artist"]! as! String!)
             self.titles.append(str)
             self.ids.append(json["Songs"]![i]!["id"]!  as! String!)
@@ -170,7 +178,7 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
             urlu = newStr
             println(urlu)
             let urlrec = json["Songs"]![i]!["urlOfArt"]! as! String!
-            let urlns = resolvePath(urlu, "thumbs", site)//NSURL(string: urlu.stringByAddingPercentEncodingWithAllowedCharacters(customAllowedSet)!)
+            let urlns = dl.resolvePath(urlu, folder: "thumbs", site: site)//NSURL(string: urlu.stringByAddingPercentEncodingWithAllowedCharacters(customAllowedSet)!)
             let data = NSData(contentsOfURL: urlns) //make sure your image in this url does exist, otherwise unwrap in a if let check
             if data != nil{
                 let img =  UIImage(data: data!)
@@ -182,7 +190,8 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
             
             dl.add(site+images[i], folder:"artwork")
             dl.add(urlu, folder: "thumbs")
-            dl.add(site+urls[i], folder:"mp3")
+//            if urls[i].rangeOfString("vk.me/")  nil  {dl.add(site+urls[i], folder:"mp3")}
+            if i<15 {dl.add(urls[i], folder:"mp3")}
 
         }
 //        println(json["Playlists"])
@@ -325,7 +334,7 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
 
 //        self.passwordHolder.delegate = sel
 //        mainView.bringSubviewToFront(loginPanel)
-        self.tableView.backgroundView = UIImageView(image:UIImage(named: "01"))
+//        self.tableView.backgroundView = UIImageView(image:UIImage(named: "01"))
 //        loginButton([])
         seekerBar.setThumbImage(UIImage(named: "thumb"), forState: .Normal)
         seekerBar.setThumbImage(UIImage(named: "thumb"), forState: .Selected)
@@ -344,9 +353,22 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         remoteBlurredView.frame = remoteView.bounds
         remoteBlurredView.addSubview(visualEffectView)
         
-        var visualEffectViewPlayer = UIVisualEffectView(effect: UIBlurEffect(style: .Light)) as UIVisualEffectView
-        playerPaneBlurredView.frame = playerPaneBlurredView.bounds
-        playerPaneBlurredView.addSubview(visualEffectViewPlayer)
+//        var visualEffectViewPlayer = UIVisualEffectView(effect: UIBlurEffect(style: .Light)) as UIVisualEffectView
+//        playerPaneBlurredView.frame = playerPaneBlurredView.bounds
+//        playerPaneBlurredView.addSubview(visualEffectViewPlayer)
+        
+        var visualEffectViewbgBlurred = UIVisualEffectView(effect: UIBlurEffect(style: .Light)) as UIVisualEffectView
+        bgBlurredView.frame = bgBlurredView.bounds
+        bgBlurredView.addSubview(visualEffectViewbgBlurred)
+        
+        
+        var gradient: CAGradientLayer = CAGradientLayer()
+        playerControlsPanel.frame = view.bounds
+        gradient.colors = [UIColor.whiteColor().CGColor, UIColor.blackColor().CGColor]
+        playerControlsPanel.layer.insertSublayer(gradient, atIndex: 0)
+        
+        
+        
 
         populate(jsonObject)
 
@@ -385,7 +407,7 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
 
     func selectTableRow(index:Int){
         let rowToSelect:NSIndexPath = NSIndexPath(forRow: index, inSection: 0);  //slecting 0th row with 0th section
-        self.tableView.selectRowAtIndexPath(rowToSelect, animated: true, scrollPosition: UITableViewScrollPosition.None);
+        self.tableView.selectRowAtIndexPath(rowToSelect, animated: false, scrollPosition: UITableViewScrollPosition.None);
         
     }
     
@@ -436,7 +458,7 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         let urlu=site+"/"+url
         println(urlu)
 //        let urlrec = self.json["Songs"][index]["urlOfArt"].asString!
-        let urlns = resolvePath(urlu, "artwork", site)
+        let urlns = dl.resolvePath(urlu, folder: "artwork", site: site)
         let data = NSData(contentsOfURL: urlns) //make sure your image in this url does exist, otherwise unwrap in a if let check
 //        if data != nil{
 //            imgCached = imagePlaceHolder
@@ -461,11 +483,13 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
                 }, completion: {
                     (value: Bool) in
                     self.imageViewer.center = self.artworkPosition
-                     self.imageViewer.image = UIImage(data: data!)
+                    self.imageViewer.image = UIImage(data: data!)
+                    self.bgBlurredImage.image = UIImage(data: data!)
                 }
             )
         } else{
             self.imageViewer.image = UIImage(data: data!)
+            self.bgBlurredImage.image = UIImage(data: data!)
         }
 
         
@@ -473,12 +497,12 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
     
     func playAtIndex(index:Int, fromTable:Bool = false){
         //        println("You selected cell #\(indexPath.row)!")
+        if !fromTable {
+            selectTableRow(index)
+        }
         if index == player.current {
             player.play()
             return
-        }
-        if !fromTable {
-            selectTableRow(index)
         }
         player.playUrl(urls[index])
         //        println(images[indexPath.row])
@@ -651,4 +675,11 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
     }
 
 }
-
+extension String {
+    init(htmlEncodedString: String) {
+        let encodedData = htmlEncodedString.dataUsingEncoding(NSUTF8StringEncoding)!
+        let attributedOptions = [NSDocumentTypeDocumentAttribute: NSHTMLTextDocumentType]
+        let attributedString = NSAttributedString(data: encodedData, options: attributedOptions, documentAttributes: nil, error: nil)
+        self.init(attributedString!.string)
+    }
+}

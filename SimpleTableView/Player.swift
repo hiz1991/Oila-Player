@@ -58,7 +58,7 @@ public class Player{
             
             var error: NSError?
             //        let fileURL:NSURL = NSBundle.mainBundle().URLForResource("Oath", withExtension: "mp3")!
-            var playerItem :NSURL = resolvePath(url, "mp3", site)
+            var playerItem :NSURL = dl.resolvePath(url, folder: "mp3", site: site)
             
             
             //        avPlayer = AVPlayer(playerItem:playerItem)
